@@ -1,4 +1,5 @@
 (ns web-crawler.wiremock
+  (:require [clj-http.client :as http])
   (:import (org.testcontainers.utility DockerImageName)
            (org.wiremock.integrations.testcontainers WireMockContainer)))
 
@@ -20,3 +21,9 @@
 (defn url
   ([] (url ""))
   ([path] (.getUrl wiremock-container path)))
+
+(defn stub-for! [mappings]
+  (doseq [mapping mappings]
+    (http/post
+      (format "%s/__admin/mappings" (url))
+      {:body (cheshire.core/generate-string mapping)})))
