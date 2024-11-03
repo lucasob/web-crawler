@@ -1,6 +1,8 @@
 (ns web-crawler.core
   (:require
     [clj-http.client :as http]
+    [clojure.core.async :as async]
+    [clojure.set :as set]
     [hickory.core :as hickory]
     [hickory.select :as select]
     [lambdaisland.uri :as uri]))
@@ -29,7 +31,25 @@
                      (hickory/as-hickory)
                      (select-a-tags))]
     {:host uri
-     :links (mapv
-              (fn [ref]
-                (->> ref (uri/parse) (default-fields uri)))
-              urls-found)}))
+     :links (->>
+              urls-found
+              (mapv
+                (fn [ref] (->> ref (uri/parse) (default-fields uri))))
+              (set))}))
+
+
+(defn crawler [visited-urls site-map uri]
+  (let [{:keys [links]} (crawl! uri)
+        updated-visited (swap! visited-urls conj uri)
+        _updated-site-map (swap! site-map assoc uri links)
+        new-to-visit (set/difference links updated-visited)]
+    (->> new-to-visit
+         (map (fn [u] (future (crawler visited-urls site-map u))))
+         (map deref)
+         (doall))))
+
+(defn do-the-rawr [uri]
+  (let [visited-urls (atom #{})
+        site-map (atom {})
+        _blocking (crawler visited-urls site-map uri)]
+    @site-map))
