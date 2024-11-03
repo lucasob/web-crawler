@@ -8,16 +8,18 @@
 
 (use-fixtures :once fixtures/with-wiremock)
 
-(def html-with-single-link
-  "<!DOCTYPE html>
-  <html>
-    <head>
-      <title>Sample</title
-    </head
-    <body>
-      <a href=\"/not-bananas\">Can you find me?</a>
-    </body
-  </html>")
+(defn html-with-single-link [to]
+  (format
+    "<!DOCTYPE html>
+    <html>
+      <head>
+        <title>Sample</title
+      </head>
+      <body>
+        <a href=\"%s\">Can you find me?</a>
+      </body>
+    </html>"
+    to))
 
 (def html-with-no-links
   "<!DOCTYPE html>
@@ -36,11 +38,11 @@
       [{:request  {:method "GET" :urlPath "/bananas"}
         :response {:status  200
                    :headers {"Content-Type" "text/html"}
-                   :body    html-with-single-link}}])
+                   :body    (html-with-single-link "/not-bananas")}}])
     (let [banana-link (uri/parse (wiremock/url "bananas"))
           expected-link (-> (into {} banana-link) (merge {:path "/not-bananas"}) (uri/map->URI))
           response (-> (wiremock/url "bananas") (uri/parse) (crawler/crawl!))]
-      (is (= {:host banana-link :links [expected-link]} response)))))
+      (is (= {:host banana-link :links #{expected-link}} response)))))
 
 (deftest follow-links
   (testing "Can follow a single, relative url on the page"
@@ -48,7 +50,7 @@
       [{:request  {:method "GET" :urlPath "/bananas"}
         :response {:status  200
                    :headers {"Content-Type" "text/html"}
-                   :body    html-with-single-link}}
+                   :body    (html-with-single-link "/not-bananas")}}
        {:request  {:method "GET" :urlPath "/not-bananas"}
         :response {:status  200
                    :headers {"Content-Type" "text/html"}
