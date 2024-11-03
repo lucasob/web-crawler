@@ -97,3 +97,10 @@ This is optional, but enabling test container reuse means not spinning up a cont
 
 Within `~/.testcontainers.properties` set `testcontainers.reuse.enable=true`
 
+## Extension(s)
+
+If I feel generous, I'd like to
+
+* Add some depth control
+* Wrap up CLI argument handling to be better & show help
+* Other bits I've written elsewhere
