@@ -67,7 +67,6 @@
 (defn crawler [visited-urls site-map uri]
   (let [{:keys [links]} (crawl! uri)
         updated-visited (swap! visited-urls conj uri)
-        _ (prn updated-visited)
         _updated-site-map (swap! site-map assoc uri links)
         new-to-visit (set/difference links updated-visited)]
     (->> new-to-visit

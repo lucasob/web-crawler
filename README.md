@@ -2,9 +2,17 @@
 
 A Clojure library designed to crawl web sites.
 
-## Usage
+## Replication
 
-TODO
+* Tested and running on `openjdk 16.0.2 2021-07-20`
+* Using clojure `1.11.1`
+* You will need `Leiningen`
+
+### Installation of Lein
+
+```shell
+brew install leiningen
+```
 
 ## Testing
 
@@ -12,6 +20,24 @@ TODO
 * We use [WireMock](https://wiremock.org) to be able to properly stub HTTP calls
 
 ## Commands
+
+### Run the code
+
+```shell
+lein run <URL>
+```
+
+Would, however, recommend piping to jq
+
+```shell
+lein run https://lucasob.github.io | jq
+```
+
+### Run Tests
+
+```shell
+lein test
+```
 
 ### Pull Dependencies
 
