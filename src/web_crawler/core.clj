@@ -2,7 +2,6 @@
   (:require
     [clj-http.client :as http]
     [clojure.set :as set]
-    [clojure.string :as string]
     [hickory.core :as hickory]
     [hickory.select :as select]
     [lambdaisland.uri :as uri]))
@@ -21,25 +20,43 @@
          :host   (or (:host other) (.host known))
          :port   (or (:port other) (.port known))}))))
 
-(defn is-relative-fragment? [^String uri-like]
-  (string/starts-with? uri-like "#"))
+(defn is-relative-fragment? [known {:keys [fragment] :as other}]
+  (boolean
+    (and (some? fragment) (dissoc known :fragment) (dissoc other :fragment))))
 
 (defn ->uri [host-uri uri-like]
   (->> uri-like (uri/parse) (with-defaults host-uri)))
 
-(defn crawl! [uri]
+(def ^:const SCHEME_HTTP "http")
+(def ^:const SCHEME_HTTPS "https")
+
+(defn valid-scheme? [scheme]
+  (#{SCHEME_HTTP SCHEME_HTTPS} scheme))
+
+(defn navigable-link?
+  [root to-inspect]
+  (boolean
+    (and
+      (= (:host root) (:host to-inspect))
+      (valid-scheme? (:scheme to-inspect))
+      (not (is-relative-fragment? root to-inspect)))))
+
+(defn crawl! [host]
   (let [urls-found (->
-                     (str uri)
+                     (str host)
                      (http/get {:throw-exceptions false})
                      (:body)
                      (hickory/parse)
                      (hickory/as-hickory)
                      (select-a-tags))]
-    {:host uri
+    {:host host
      :links (->>
               urls-found
-              (remove is-relative-fragment?)
-              (mapv (partial ->uri uri))
+              (reduce (fn [assembled found]
+                        (when-let [uri (and (some? found) (->uri host found))]
+                          (when (navigable-link? host uri)
+                            (conj assembled uri))))
+                      [])
               (set))}))
 
 (defn crawler [visited-urls site-map uri]

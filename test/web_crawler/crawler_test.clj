@@ -1,4 +1,4 @@
-(ns web-crawler.core-test
+(ns web-crawler.crawler_test
   (:require
     [clojure.test :refer :all]
     [lambdaisland.uri :as uri]
