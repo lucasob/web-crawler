@@ -5,7 +5,10 @@
                  [clj-http "3.13.0"]
                  [lambdaisland/uri "1.19.155"]
                  [org.clj-commons/hickory "0.7.5"]
-                 [cheshire "5.13.0"]]
+                 [cheshire "5.13.0"]
+                 [org.apache.logging.log4j/log4j-api "2.20.0"]
+                 [org.apache.logging.log4j/log4j-core "2.20.0"]
+                 [org.apache.logging.log4j/log4j-slf4j-impl "2.20.0"]]
   :plugins [[lein-cloverage "1.2.2"]]
   :main web-crawler.main
   :repl-options {:init-ns web-crawler.core}
