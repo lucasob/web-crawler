@@ -44,6 +44,16 @@
           response (-> (wiremock/url "bananas") (uri/parse) (crawler/crawl!))]
       (is (= {:host banana-link :links #{expected-link}} response)))))
 
+(deftest getting-links-ignores-anchors
+  (testing "Gracefully skips anchor links"
+    (wiremock/stub-for!
+      [{:request  {:method "GET" :urlPath "/bananas"}
+        :response {:status  200
+                   :headers {"Content-Type" "text/html"}
+                   :body    (html-with-single-link "#ItsBigBrainTime")}}])
+    (let [banana-link (uri/parse (wiremock/url "bananas"))]
+      (is (= {:host banana-link :links #{}} (-> (wiremock/url "bananas") (uri/parse) (crawler/crawl!)))))))
+
 (deftest follow-links
   (testing "Can follow a single, relative url on the page"
     (wiremock/stub-for!
