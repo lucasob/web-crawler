@@ -8,10 +8,42 @@ A Clojure library designed to crawl web sites.
 * Using clojure `1.11.1`
 * You will need `Leiningen`
 
-### Installation of Lein
+### Running Directly
+
+You can invoke using leiningen directly, if you install lein accordingly
 
 ```shell
 brew install leiningen
+```
+
+## Docker
+
+Given I don't want to make anyone's day terrible, I've wrapped this up to be invoked from docker
+
+### Build
+
+```shell
+docker build -t crawler .
+```
+
+### Run
+
+(I'd still recommend piping to JQ)
+
+```shell
+docker run crawler https://lucasob.github.io
+```
+
+### Compose
+
+At this point, I've run out of other ways to help 😉
+
+The logs are a bit bad, and you won't get nice jq, but regardless.
+
+You have to manually specify the url you want inside the compose file.
+
+```shell
+docker compose up crawler
 ```
 
 ## Testing
@@ -54,6 +86,10 @@ lein cloverage
 ```
 
 ## Useful Bits
+
+### Slow?
+
+Yeah, the JVM has to start up every time you use lein 😭
 
 ### Enable test container reuse
 

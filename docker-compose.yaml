@@ -1,0 +1,7 @@
+services:
+  crawler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command:
+      - https://lucasob.github.io # Change me! :D
