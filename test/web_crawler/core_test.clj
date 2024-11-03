@@ -28,6 +28,5 @@
                    :body    html-basic}}])
     (let [banana-link (uri/parse (wiremock/url "bananas"))
           expected-link (-> (into {} banana-link) (merge {:path "/not-bananas"}) (uri/map->URI))
-          [link :as all-links] (-> (wiremock/url "bananas") (uri/parse) (crawler/crawl!))]
-      (is (= expected-link link))
-      (is (= 1 (count all-links))))))
+          response (-> (wiremock/url "bananas") (uri/parse) (crawler/crawl!))]
+      (is (= {:host banana-link :links [expected-link]} response)))))

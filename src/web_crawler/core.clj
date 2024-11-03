@@ -28,4 +28,8 @@
                      (hickory/parse)
                      (hickory/as-hickory)
                      (select-a-tags))]
-    (mapv (fn [ref] (->> ref (uri/parse) (default-fields uri))) urls-found)))
+    {:host uri
+     :links (mapv
+              (fn [ref]
+                (->> ref (uri/parse) (default-fields uri)))
+              urls-found)}))
