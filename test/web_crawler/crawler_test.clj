@@ -70,3 +70,20 @@
       (is (= {banana-link     #{not-banana-link}
               not-banana-link #{}}
              (-> (wiremock/url "bananas") (uri/parse) (crawler/do-the-rawr)))))))
+
+(deftest no-cycles
+  (testing "Given pages will always link back some way, ensure we do not chase infinitely"
+    (wiremock/stub-for!
+      [{:request  {:method "GET" :urlPath "/bananas"}
+        :response {:status  200
+                   :headers {"Content-Type" "text/html"}
+                   :body    (html-with-single-link "/not-bananas")}}
+       {:request  {:method "GET" :urlPath "/not-bananas"}
+        :response {:status  200
+                   :headers {"Content-Type" "text/html"}
+                   :body    (html-with-single-link "/bananas")}}])
+    (let [banana-link (uri/parse (wiremock/url "bananas"))
+          not-banana-link (uri/parse (wiremock/url "not-bananas"))]
+      (is (= {banana-link     #{not-banana-link}
+              not-banana-link #{banana-link}}
+             (-> (wiremock/url "bananas") (uri/parse) (crawler/do-the-rawr)))))))
