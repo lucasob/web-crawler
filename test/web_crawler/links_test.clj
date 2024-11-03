@@ -19,6 +19,6 @@
 
 (deftest correctly-generates-a-set-of-navigable-links
   (let [host (uri/parse "https://some.domain")
-        found ["/relative" "#onTheSamePage" "https://sub.some.domain" "https://something.else"]]
+        found [nil "" "/relative" "#onTheSamePage" "https://sub.some.domain" "https://something.else" "javascript:void(0)"]]
     (is (= #{(uri/parse "https://some.domain/relative")}
            (crawler/found->navigable host found)))))
