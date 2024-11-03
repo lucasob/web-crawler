@@ -11,13 +11,23 @@ TODO
 * We rely on [testcontainers](https://testcontainers.com) to abstract away spinning up dependencies
 * We use [WireMock](https://wiremock.org) to be able to properly stub HTTP calls
 
-## Useful Things
+## Commands
 
 ### Pull Dependencies
 
 ```shell
 lein deps
 ```
+
+### View coverage
+
+(This will download additional deps on first run)
+
+```shell
+lein cloverage
+```
+
+## Useful Bits
 
 ### Enable test container reuse
 
