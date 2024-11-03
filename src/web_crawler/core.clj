@@ -41,6 +41,17 @@
       (valid-scheme? (:scheme to-inspect))
       (not (is-relative-fragment? root to-inspect)))))
 
+(defn found->navigable [host links]
+  (->>
+    links
+    (reduce (fn [assembled found]
+              (when-let [uri (and (some? found) (->uri host found))]
+                (if (navigable-link? host uri)
+                  (conj assembled uri)
+                  assembled)))
+            [])
+    (set)))
+
 (defn crawl! [host]
   (let [urls-found (->
                      (str host)
@@ -49,15 +60,8 @@
                      (hickory/parse)
                      (hickory/as-hickory)
                      (select-a-tags))]
-    {:host host
-     :links (->>
-              urls-found
-              (reduce (fn [assembled found]
-                        (when-let [uri (and (some? found) (->uri host found))]
-                          (when (navigable-link? host uri)
-                            (conj assembled uri))))
-                      [])
-              (set))}))
+    {:host  host
+     :links (found->navigable host urls-found)}))
 
 (defn crawler [visited-urls site-map uri]
   (let [{:keys [links]} (crawl! uri)

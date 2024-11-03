@@ -16,3 +16,9 @@
       (is (false?
             (ok-for?
               (-> (into {} root) (assoc :fragment "fragmentable") (uri/map->URI))))))))
+
+(deftest correctly-generates-a-set-of-navigable-links
+  (let [host (uri/parse "https://some.domain")
+        found ["/relative" "#onTheSamePage" "https://sub.some.domain" "https://something.else"]]
+    (is (= #{(uri/parse "https://some.domain/relative")}
+           (crawler/found->navigable host found)))))
