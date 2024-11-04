@@ -75,8 +75,8 @@
           new-to-visit (set/difference links updated-visited)
           next-cfg (assoc cfg :depth (inc depth))]
       (->> new-to-visit
-           (map (fn [u] (future (crawl! visited-urls site-map next-cfg u))))
-           (map deref)
+           (mapv (fn [u] (future (crawl! visited-urls site-map next-cfg u))))
+           (mapv deref)
            (doall)))))
 
 (defn create
