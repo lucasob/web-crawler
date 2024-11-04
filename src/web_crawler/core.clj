@@ -34,6 +34,7 @@
   (#{SCHEME_HTTP SCHEME_HTTPS} scheme))
 
 (defn navigable-link?
+  "returns true if given the root url, we are expected to follow this link later."
   [root to-inspect]
   (boolean
     (and
@@ -41,19 +42,21 @@
       (valid-scheme? (:scheme to-inspect))
       (not (is-relative-fragment? root to-inspect)))))
 
-(defn found->navigable [host links]
+(defn found->navigable
+  "Returns a set of links, from a host, that should be traversed next."
+  [host links]
   (->>
     links
     (reduce (fn [assembled found]
-              (if-let [uri (and (seq found) (->uri host found))]
-                (if (navigable-link? host uri)
-                  (conj assembled uri)
-                  assembled)
+              (or
+                (if-let [uri (and (seq found) (->uri host found))]
+                  (when (navigable-link? host uri)
+                    (conj assembled uri)))
                 assembled))
             [])
     (set)))
 
-(defn crawl! [host]
+(defn scrape! [host]
   (let [urls-found (->
                      (str host)
                      (http/get {:throw-exceptions false})
@@ -64,25 +67,26 @@
     {:host  host
      :links (found->navigable host urls-found)}))
 
-(defn crawler [visited-urls site-map {:keys [depth max-depth] :as cfg} uri]
+(defn crawl! [visited-urls site-map {:keys [depth max-depth] :as cfg} uri]
   (when (< depth max-depth)
-    (let [{:keys [links]} (crawl! uri)
+    (let [{:keys [links]} (scrape! uri)
           updated-visited (swap! visited-urls conj uri)
-          _updated-site-map (swap! site-map assoc (str uri) (set (mapv str links)))
+          _updated-site-map (swap! site-map assoc uri links)
           new-to-visit (set/difference links updated-visited)
           next-cfg (assoc cfg :depth (inc depth))]
       (->> new-to-visit
-           (map (fn [u] (future (crawler visited-urls site-map next-cfg u))))
+           (map (fn [u] (future (crawl! visited-urls site-map next-cfg u))))
            (map deref)
            (doall)))))
 
-(defn create-crawler
-  ([uri]
-   (create-crawler {} uri))
+(defn create
+  "`create` returns a function that when invoked, returns the sitemap from `uri`,
+  which is obtained by crawling the specified uri to the configured parameters."
+  ([uri] (create {} uri))
 
   ([{:keys [max-depth] :or {max-depth 3}} uri]
    (let [visited-urls (atom #{})
          site-map (atom {})]
      (fn []
-       (crawler visited-urls site-map {:depth 0 :max-depth max-depth} uri)
-       @site-map))))
+       (crawl! visited-urls site-map {:depth 0 :max-depth max-depth} uri)
+       (into {} (map (fn [[site urls]] {(str site) (->> urls (mapv str) (set))}) @site-map))))))

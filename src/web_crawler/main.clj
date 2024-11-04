@@ -5,11 +5,11 @@
     [cheshire.core :as cheshire]))
 
 (defn crawl-url! [url max-depth]
-  (let [crawl! (->> url (uri/parse) (crawler/create-crawler {:max-depth max-depth}))]
-    (crawl!)))
+  (let [do-crawl (->> url (uri/parse) (crawler/create {:max-depth max-depth}))]
+    (do-crawl)))
 
 (defn -main [& [uri max-depth]]
-  (let [depth (try (Integer/parseInt max-depth) (catch Exception e 0))]
+  (let [depth (try (Integer/parseInt max-depth) (catch Exception _e 1))]
     (->
       (crawl-url! uri depth)
       (cheshire/generate-string)

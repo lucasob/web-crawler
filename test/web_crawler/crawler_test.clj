@@ -19,7 +19,7 @@
                    :body    (support/html-with-single-link "/child")}}])
     (let [parent-link (uri/parse (wiremock/url "parent"))
           expected-link (-> (into {} parent-link) (merge {:path "/child"}) (uri/map->URI))
-          response (-> (wiremock/url "parent") (uri/parse) (crawler/crawl!))]
+          response (-> (wiremock/url "parent") (uri/parse) (crawler/scrape!))]
       (is (= {:host parent-link :links #{expected-link}} response)))))
 
 (deftest getting-links-ignores-anchors
@@ -30,7 +30,7 @@
                    :headers {"Content-Type" "text/html"}
                    :body    (support/html-with-single-link "#ItsBigBrainTime")}}])
     (let [parent-link (uri/parse (wiremock/url "parent"))]
-      (is (= {:host parent-link :links #{}} (-> (wiremock/url "parent") (uri/parse) (crawler/crawl!)))))))
+      (is (= {:host parent-link :links #{}} (-> (wiremock/url "parent") (uri/parse) (crawler/scrape!)))))))
 
 (deftest follow-links
   (testing "Can follow a single, relative url on the page"
@@ -43,10 +43,10 @@
         :response {:status  200
                    :headers {"Content-Type" "text/html"}
                    :body    support/html-with-no-links}}])
-    (let [crawler (-> (wiremock/url "parent") (uri/parse) (crawler/create-crawler))
-          parent-link (uri/parse (wiremock/url "parent"))
-          child-link (uri/parse (wiremock/url "child"))]
-      (is (= {(str parent-link) #{(str child-link)} (str child-link) #{}} (crawler))))))
+    (let [do-crawl (-> (wiremock/url "parent") (uri/parse) (crawler/create))
+          parent-link (-> (wiremock/url "parent") (uri/parse) (str))
+          child-link (-> (wiremock/url "child") (uri/parse) (str))]
+      (is (= {parent-link #{child-link} child-link #{}} (do-crawl))))))
 
 (deftest no-cycles
   (testing "Given pages will always link back some way, ensure we do not chase infinitely"
@@ -59,10 +59,10 @@
         :response {:status  200
                    :headers {"Content-Type" "text/html"}
                    :body    (support/html-with-single-link "/parent")}}])
-    (let [crawler (-> (wiremock/url "parent") (uri/parse) (crawler/create-crawler))
-          parent-link (uri/parse (wiremock/url "parent"))
-          child-link (uri/parse (wiremock/url "child"))]
-      (is (= {(str parent-link) #{(str child-link)} (str child-link) #{(str parent-link)}} (crawler))))))
+    (let [do-crawl (-> (wiremock/url "parent") (uri/parse) (crawler/create))
+          parent-link (-> (wiremock/url "parent") (uri/parse) (str))
+          child-link (-> (wiremock/url "child") (uri/parse) (str))]
+      (is (= {parent-link #{child-link} child-link #{parent-link}} (do-crawl))))))
 
 (deftest respects-depth
   (testing "Respects the depth"
@@ -79,8 +79,8 @@
         :response {:status  200
                    :headers {"Content-Type" "text/html"}
                    :body    support/html-with-no-links}}])
-    (let [crawler (->> (wiremock/url "parent") (uri/parse) (crawler/create-crawler {:max-depth 2}))
-          parent-link (uri/parse (wiremock/url "parent"))
-          child-link (uri/parse (wiremock/url "child"))
-          second-child-link (uri/parse (wiremock/url "second-child"))]
-      (is (= {(str parent-link) #{(str child-link)} (str child-link) #{(str second-child-link)}} (crawler))))))
+    (let [do-crawl (->> (wiremock/url "parent") (uri/parse) (crawler/create {:max-depth 2}))
+          parent-link (-> (wiremock/url "parent") (uri/parse) (str))
+          child-link (-> (wiremock/url "child") (uri/parse) (str))
+          second-child-link (-> (wiremock/url "second-child") (uri/parse) (str))]
+      (is (= {parent-link #{child-link} child-link #{second-child-link}} (do-crawl))))))

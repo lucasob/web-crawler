@@ -17,6 +17,6 @@
                    :headers {"Content-Type" "text/html"}
                    :body    (support/html-with-single-link "/child")}}])
     (let [parent-link (uri/parse (wiremock/url "parent"))
-          expected-link (-> (into {} parent-link) (merge {:path "/child"}) (uri/map->URI))]
-      (is (= {(str parent-link) #{(str expected-link)}}
+          child-link (-> (into {} parent-link) (merge {:path "/child"}) (uri/map->URI) (str))]
+      (is (= {(str parent-link) #{child-link}}
              (main/crawl-url! (wiremock/url "parent") 1))))))
