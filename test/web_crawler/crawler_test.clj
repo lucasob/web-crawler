@@ -43,11 +43,10 @@
         :response {:status  200
                    :headers {"Content-Type" "text/html"}
                    :body    support/html-with-no-links}}])
-    (let [parent-link (uri/parse (wiremock/url "parent"))
+    (let [crawler (-> (wiremock/url "parent") (uri/parse) (crawler/create-crawler))
+          parent-link (uri/parse (wiremock/url "parent"))
           child-link (uri/parse (wiremock/url "child"))]
-      (is (= {parent-link #{child-link}
-              child-link  #{}}
-             (-> (wiremock/url "parent") (uri/parse) (crawler/crawl-all!)))))))
+      (is (= {(str parent-link) #{(str child-link)} (str child-link) #{}} (crawler))))))
 
 (deftest no-cycles
   (testing "Given pages will always link back some way, ensure we do not chase infinitely"
@@ -60,8 +59,28 @@
         :response {:status  200
                    :headers {"Content-Type" "text/html"}
                    :body    (support/html-with-single-link "/parent")}}])
-    (let [parent-link (uri/parse (wiremock/url "parent"))
+    (let [crawler (-> (wiremock/url "parent") (uri/parse) (crawler/create-crawler))
+          parent-link (uri/parse (wiremock/url "parent"))
           child-link (uri/parse (wiremock/url "child"))]
-      (is (= {parent-link #{child-link}
-              child-link  #{parent-link}}
-             (-> (wiremock/url "parent") (uri/parse) (crawler/crawl-all!)))))))
+      (is (= {(str parent-link) #{(str child-link)} (str child-link) #{(str parent-link)}} (crawler))))))
+
+(deftest respects-depth
+  (testing "Respects the depth"
+    (wiremock/stub-for!
+      [{:request  {:method "GET" :urlPath "/parent"}
+        :response {:status  200
+                   :headers {"Content-Type" "text/html"}
+                   :body    (support/html-with-single-link "/child")}}
+       {:request  {:method "GET" :urlPath "/child"}
+        :response {:status  200
+                   :headers {"Content-Type" "text/html"}
+                   :body    (support/html-with-single-link "/second-child")}}
+       {:request  {:method "GET" :urlPath "/second-child"}
+        :response {:status  200
+                   :headers {"Content-Type" "text/html"}
+                   :body    support/html-with-no-links}}])
+    (let [crawler (->> (wiremock/url "parent") (uri/parse) (crawler/create-crawler {:max-depth 2}))
+          parent-link (uri/parse (wiremock/url "parent"))
+          child-link (uri/parse (wiremock/url "child"))
+          second-child-link (uri/parse (wiremock/url "second-child"))]
+      (is (= {(str parent-link) #{(str child-link)} (str child-link) #{(str second-child-link)}} (crawler))))))

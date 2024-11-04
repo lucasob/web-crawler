@@ -64,18 +64,25 @@
     {:host  host
      :links (found->navigable host urls-found)}))
 
-(defn crawler [visited-urls site-map uri]
-  (let [{:keys [links]} (crawl! uri)
-        updated-visited (swap! visited-urls conj uri)
-        _updated-site-map (swap! site-map assoc uri links)
-        new-to-visit (set/difference links updated-visited)]
-    (->> new-to-visit
-         (map (fn [u] (future (crawler visited-urls site-map u))))
-         (map deref)
-         (doall))))
+(defn crawler [visited-urls site-map {:keys [depth max-depth] :as cfg} uri]
+  (when (< depth max-depth)
+    (let [{:keys [links]} (crawl! uri)
+          updated-visited (swap! visited-urls conj uri)
+          _updated-site-map (swap! site-map assoc (str uri) (set (mapv str links)))
+          new-to-visit (set/difference links updated-visited)
+          next-cfg (assoc cfg :depth (inc depth))]
+      (->> new-to-visit
+           (map (fn [u] (future (crawler visited-urls site-map next-cfg u))))
+           (map deref)
+           (doall)))))
 
-(defn crawl-all! [uri]
-  (let [visited-urls (atom #{})
-        site-map (atom {})
-        _blocking (crawler visited-urls site-map uri)]
-    @site-map))
+(defn create-crawler
+  ([uri]
+   (create-crawler {} uri))
+
+  ([{:keys [max-depth] :or {max-depth 3}} uri]
+   (let [visited-urls (atom #{})
+         site-map (atom {})]
+     (fn []
+       (crawler visited-urls site-map {:depth 0 :max-depth max-depth} uri)
+       @site-map))))
