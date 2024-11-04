@@ -103,4 +103,6 @@ If I feel generous, I'd like to
 
 * Add some depth control
 * Wrap up CLI argument handling to be better & show help
-* Other bits I've written elsewhere
+* Move to babashka
+* Remove the memes
+* Split up text
