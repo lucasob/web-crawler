@@ -74,7 +74,7 @@
          (map deref)
          (doall))))
 
-(defn do-the-rawr [uri]
+(defn crawl-all! [uri]
   (let [visited-urls (atom #{})
         site-map (atom {})
         _blocking (crawler visited-urls site-map uri)]

@@ -4,3 +4,7 @@
 (defn with-wiremock [f]
   (wiremock/start!)
   (f))
+
+(defn reset-wiremock [f]
+  (f)
+  (wiremock/reset!))

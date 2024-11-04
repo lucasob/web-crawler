@@ -5,4 +5,4 @@
     [cheshire.core :as cheshire]))
 
 (defn -main [& args]
-  (-> args (first) (uri/parse) (crawler/do-the-rawr) (cheshire/generate-string) (println)))
+  (-> args (first) (uri/parse) (crawler/crawl-all!) (cheshire/generate-string) (println)))

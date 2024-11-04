@@ -27,3 +27,8 @@
     (http/post
       (format "%s/__admin/mappings" (url))
       {:body (cheshire.core/generate-string mapping)})))
+
+(defn reset! []
+  (http/post
+    (format "%s/__admin/reset" (url))
+    {}))
