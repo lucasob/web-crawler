@@ -16,25 +16,35 @@ You can invoke using leiningen directly, if you install lein accordingly
 brew install leiningen
 ```
 
-## Docker
+```shell
+lein run <URL> <DEPTH>
+```
+
+I would, however, recommend piping to jq
+
+```shell
+lein run https://lucasob.github.io 1 | jq
+```
+
+### Docker
 
 Given I don't want to make anyone's day terrible, I've wrapped this up to be invoked from docker
 
-### Build
+#### Build
 
 ```shell
 docker build -t crawler .
 ```
 
-### Run
+#### Run
 
-(I'd still recommend piping to JQ)
+(I'd still recommend piping to JQ, the depth param is optional, but does default to 0)
 
 ```shell
-docker run crawler https://lucasob.github.io
+docker run crawler https://lucasob.github.io 1 | jq
 ```
 
-### Compose
+#### Compose
 
 At this point, I've run out of other ways to help 😉
 
@@ -52,18 +62,6 @@ docker compose up crawler
 * We use [WireMock](https://wiremock.org) to be able to properly stub HTTP calls
 
 ## Commands
-
-### Run the code
-
-```shell
-lein run <URL>
-```
-
-Would, however, recommend piping to jq
-
-```shell
-lein run https://lucasob.github.io | jq
-```
 
 ### Run Tests
 
@@ -101,6 +99,4 @@ Within `~/.testcontainers.properties` set `testcontainers.reuse.enable=true`
 
 If I feel generous, I'd like to
 
-* Add some depth control
 * Wrap up CLI argument handling to be better & show help
-* Split up text

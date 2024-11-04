@@ -5,3 +5,4 @@ services:
       dockerfile: Dockerfile
     command:
       - https://lucasob.github.io # Change me! :D
+      - "1"
