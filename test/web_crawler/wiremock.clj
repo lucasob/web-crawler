@@ -12,12 +12,6 @@
 (defn start! []
   (.start wiremock-container))
 
-(defn stop! []
-  (.stop wiremock-container))
-
-(defn is-running? []
-  (some? (.getContainerId wiremock-container)))
-
 (defn url
   ([] (url ""))
   ([path] (.getUrl wiremock-container path)))
@@ -28,7 +22,7 @@
       (format "%s/__admin/mappings" (url))
       {:body (cheshire.core/generate-string mapping)})))
 
-(defn reset! []
+(defn refresh! []
   (http/post
     (format "%s/__admin/reset" (url))
     {}))

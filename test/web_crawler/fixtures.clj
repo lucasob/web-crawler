@@ -7,4 +7,4 @@
 
 (defn reset-wiremock [f]
   (f)
-  (wiremock/reset!))
+  (wiremock/refresh!))
