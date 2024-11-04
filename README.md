@@ -100,3 +100,4 @@ Within `~/.testcontainers.properties` set `testcontainers.reuse.enable=true`
 If I feel generous, I'd like to
 
 * Wrap up CLI argument handling to be better & show help
+* This would go so much faster in BB, but the issue is testing and reproducibility -- bb is hard.
